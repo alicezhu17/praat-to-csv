@@ -1,13 +1,13 @@
 # praat-to-csv
-Converts Praat Textgrids into a XLS file
+Converts a Praat TextGrid into a XLS file
 
-## TextGrid Requirements ##
+### TextGrid Requirements ###
 
 A TextGrid file must be included in current directory.
 
 The first tier of this TextGrid must be an interval tier. All other tiers must be point tiers.
 
-## Program Details ##
+### Program Details ###
 
 Before running program, TextGrid file must be included in current directory.
 
