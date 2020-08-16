@@ -1,4 +1,4 @@
-# praat-to-csv
+# praat-to-xls
 Converts a Praat TextGrid into a XLS file
 
 ### TextGrid Requirements ###
