@@ -2,18 +2,27 @@ from xlwt import Workbook
 import numpy as np
 import os
 
-nameoffile = "example.TEXTGRID"
+nameoffile = 'example.TEXTGRID'
+savexlsas = 'example.xls'
 
-inFile = open(nameoffile,'r')
-filelines = []
-for line in inFile:
-    filelines.append(line.strip())
-inFile.close()
+def read_file(nameoffile):
+    '''Reads file
+    '''
+    inFile = open(nameoffile,'r')
+    filelines = []
+    for line in inFile:
+        filelines.append(line.strip())
+    inFile.close()
+    return filelines
 
-tiernames = []
-for i, line in enumerate(filelines):
-    if 'name = ' in line:
-        tiernames.append(line.strip('name = ').strip('""'))
+def get_tier_names(filelines):
+    '''Gets tier names
+    '''
+    tiernames = []
+    for i, line in enumerate(filelines):
+        if 'name = ' in line:
+            tiernames.append(line.strip('name = ').strip('""'))
+    return tiernames
 
 
 def extract_tier(filelines,linename):
@@ -56,11 +65,13 @@ def strip_tiers(filelines,tiernames):
     Uses extract_tier(), strip_interval_tier(), strip_point_tier()
     Returns list of stripped tiers
     '''
+    #extract first tier, which is an interval tier
     tierslist = []
     wordtier = extract_tier(filelines,tiernames[0])
     wordtup = strip_interval_tier(wordtier)
     tierslist.append(wordtup)
     
+    #extract other tiers, which are point tiers
     for elem in tiernames[1:]:
         lmtier = extract_tier(filelines,elem)
         lmtime = strip_point_tier(lmtier)
@@ -75,6 +86,8 @@ def word_dic(tierslist,tiernames):
     {(Word,start,end):{Tier1: [(time,lm),(time,lm),(time,lm)], Tier2: [(time,lm),(time,lm),(time,lm)]},etc}
     '''
     worddic = {elem:{k:[] for k in tiernames[1:]} for elem in tierslist[0]}
+    
+    #for point tiers, add landmark to dictionary if it is within time interval
     for i, tier in enumerate(tierslist[1:]):
         name = tiernames[i+1]
         for lm in tier:
@@ -83,27 +96,34 @@ def word_dic(tierslist,tiernames):
                     worddic[word][name].append(lm)
                     break
     return worddic
-    
-    
+
+
+
+#read file
+filelines = read_file(nameoffile)
+tiernames = get_tier_names(filelines)
+
+#creates worddic    
 tierslist = strip_tiers(filelines,tiernames)
 worddic = word_dic(tierslist,tiernames)    
-print(worddic, '\n')    
+#print(worddic, '\n')    
 
 
-
-    
+#writes worddic to sheet  
 wb = Workbook()
 sheet1 = wb.add_sheet('Textgrid')
 numtiers = len(tiernames)
 
-i = 0
+#for every interval tier
 for wordi, elem in enumerate(worddic):
+    #write interval tier name, elem, starttime,endtime
     sheet1.write(numtiers*wordi*2,0,tiernames[0])
     j = 1
     for tup in elem:
         sheet1.write(numtiers*wordi*2,j,tup)
         j += 1
-        
+    
+    #for each point tier, write landmark and time row    
     for namei,name in enumerate(tiernames):
         if namei != 0:
             sheet1.write(numtiers*wordi*2+2*namei-1,0,name)
@@ -115,13 +135,4 @@ for wordi, elem in enumerate(worddic):
                 j += 1
 
 
-
-
-
-
-
-
-
-
-
-wb.save('example.xls')
+wb.save(savexlsas)
